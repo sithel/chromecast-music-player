@@ -50,7 +50,8 @@
       };
 
       manager.onSenderConnected = function(evt) {
-        document.body.style.backgroundColor = 'green';
+        document.body.style.backgroundColor = 'black';
+        document.body.style.color = 'white';
         var senderId = evt.data;
         if (!R.authenticated()) {
           messageBus.send(senderId, {type: 'requestAccessToken'});
