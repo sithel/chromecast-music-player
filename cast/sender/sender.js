@@ -20,15 +20,36 @@ R.on('cookieError', function() {
 var reb = {
   chromecastApplicationId: '8A833349',
   start: function() {
-    _.bindAll(this, 'startCasting', 'startRdio');
+    _.bindAll(this, 'startCasting', 'startRdio', 'handleNewSession', 'sendMessage');
     $('.cast-button').click(this.startCasting);
     $('.auth-button').click(this.startRdio);
   },
+  handleNewSession: function(s) {
+    var self = this;
+    s.addMessageListener('urn:x-cast:duck', function(s1, s2) {
+      console.info("[Chromecast] just received a message! " , arguments);
+      if (s2 == 'requestAccessToken') {
+        self.startRdio();
+      }
+    });
+  },
+  sendMessage: function(msg) {
+    this._session.sendMessage('urn:x-cast:duck', msg, 
+      function() {
+        console.info("[Chromecast] msg send : success ",arguments);
+      },
+      function() {
+        console.info("[Chromecast] msg send : failure ",arguments);
+      }
+    );
+  },
   startRdio: function() {
+    var self = this;
     R.ready(function() {
       console.info("[Rdio] -- checking the current user " + R.currentUser.get('key'));
       if (R.authenticated()) {
         console.info("[Rdio] I am authenticated : " + R.accessToken());
+        self.sendMessage(JSON.stringify({ type: 'accessToken', value: R.accessToken() }));
       } else {
         console.info("[Rdio] I am NOT authenticated");
         R.authenticate(function(authenticated) {
@@ -38,6 +59,7 @@ var reb = {
     });
   },
   startCasting: function() {
+    var self = this;
     sessionRequest = new chrome.cast.SessionRequest(this.chromecastApplicationId);
     var apiConfig = new chrome.cast.ApiConfig(sessionRequest,
       function() {
@@ -53,6 +75,17 @@ var reb = {
       },
       function(){
         console.error("[Chromecast] session start : on error ",arguments);
+      }
+    );
+
+    chrome.cast.requestSession(
+      function(s){
+        console.error("[Chromecast] request session : success ",arguments);
+        self._session = s;
+        self.handleNewSession(s);
+      },
+      function(){
+        console.error("[Chromecast] on launch error ",arguments);
       }
     );
   }
@@ -72,21 +105,4 @@ R.player.playingSource().get('duration')
 
 https://www.rdio.com/oauth2/authorize?response_type=token&client_id=uJQhJrLf20C_re-6XjUvcA&redirect_uri=http://localhost:8000/cast/sender/
 
-
-token: """"
-ts: "1391934461"
-uid: "309113"
-""
-
-https://www.rdio.com/account/signin/RD10cca7abba5848386746294d3a4254b01b/?secure=True&uid=1391934461&ts=1391934724&next=http://localhost:8000/cast/sender/
-
-R.Api.request({
-  method: 'getAutologinParams',
-  success: function(){
-    console.log(" success ", arguments)
-  },
-  error: function(){
-    console.log(" failure ", arguments)
-  }
-});
 */
