@@ -12,10 +12,15 @@
           R.ready(function() {
             R.player.on('change:playingTrack', function(track) {
               if (!track) return;
+              messageBus.broadcast(JSON.stringify({
+                type: 'playingTrack',
+                key: track.get('key')
+              }));
               var row = document.createElement('div');
               row.textContent =
                 track.get('name') + ' - ' + track.get('album') + ' - ' + track.get('artist');
               document.getElementById('trackLog').appendChild(row);
+              document.getElementById('cover').src = track.get('icon');
             });
           });
         }
@@ -31,7 +36,6 @@
       var messageBus = manager.getCastMessageBus('urn:x-cast:duck');
       messageBus.onMessage = function(evt) {
         toggleStatusColor();
-
         var message = JSON.parse(evt.data);
         if (message.type == 'accessToken') {
           R.accessToken(message.value);
@@ -43,7 +47,7 @@
         document.body.style.backgroundColor = 'green';
         if (!R.authenticated()) {
           var senderId = evt.data;
-          messageBus.send(senderId, 'requestAccessToken');
+          messageBus.send(senderId, JSON.stringify({type: 'requestAccessToken'}));
         }
       };
       manager.start(appConfig);
@@ -60,5 +64,6 @@
     </script>
   </body>
   <div style="float: right; margin: 50px 50px 0 0; height: 100px; width: 100px; background-color: blue" id=status></div>
+  <img style="float: left; margin: 50px 0 0 50px;" width=200 height=200 id=cover>
   <center id=trackLog></center>
 </html>
