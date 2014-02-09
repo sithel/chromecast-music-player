@@ -15,7 +15,7 @@ R.on('change:ready', function() {
 R.on('cookieError', function() {
   console.log("i see a cookie error ",arguments);
 })
-
+$('.cast-button').prop('disabled',true)
 
 var reb = {
   chromecastApplicationId: '8A833349',
@@ -38,9 +38,40 @@ var reb = {
         arguments: [{source: $('.source-val').val()}]
       }))
     });
+    $('.source-val').val('t' + Math.round((Math.random() * 100000)) );
+    $('.random-button').click(function() {
+      $('.source-val').val('t' + Math.round((Math.random() * 100000)) );
+      $('.playingSource-button').click();
+    });
+
+    var self = this;
+    sessionRequest = new chrome.cast.SessionRequest(this.chromecastApplicationId);
+    var apiConfig = new chrome.cast.ApiConfig(sessionRequest,
+      function(s) {
+        console.info("[Chromecast] init : session listener ",arguments);
+        if (s) {
+          self.handleNewSession(s);
+        }
+      },
+      function(){
+        console.error("[Chromecast] init: receiver listener ",arguments);
+      }
+    );
+    chrome.cast.initialize(apiConfig,
+      function() {
+        console.info("[Chromecast] session start : on init success ",arguments);
+        $('.cast-button').prop('disabled',false)
+      },
+      function(){
+        console.error("[Chromecast] session start : on error ",arguments);
+      }
+    );
   },
   handleNewSession: function(s) {
+    $('.playing').removeClass('hidden');
+    $('.startup').addClass('hidden');
     var self = this;
+    self._session = s;
     s.addMessageListener('urn:x-cast:duck', function(s1, s2) {
       console.info("[Chromecast] just received a message! " , arguments);
       var obj = JSON.parse(s2);
@@ -79,28 +110,10 @@ var reb = {
   },
   startCasting: function() {
     var self = this;
-    sessionRequest = new chrome.cast.SessionRequest(this.chromecastApplicationId);
-    var apiConfig = new chrome.cast.ApiConfig(sessionRequest,
-      function() {
-        console.info("[Chromecast] init : session listener ",arguments);
-      },
-      function(){
-        console.error("[Chromecast] init: receiver listener ",arguments);
-      }
-    );
-    chrome.cast.initialize(apiConfig,
-      function() {
-        console.info("[Chromecast] session start : on init success ",arguments);
-      },
-      function(){
-        console.error("[Chromecast] session start : on error ",arguments);
-      }
-    );
 
     chrome.cast.requestSession(
       function(s){
         console.error("[Chromecast] request session : success ",arguments);
-        self._session = s;
         self.handleNewSession(s);
       },
       function(){
@@ -109,20 +122,36 @@ var reb = {
     );
   },
   pullDetails: function(key) {
+    var self = this;
     R.request({
       method: "get",
       content: {
         keys: key
       },
       success: function(response) {
+        if (self.lastPlay && self.prevObj) {
+          var diff = (new Date().getTime() - self.lastPlay.getTime()) / 1000.0;
+          $('.history .played:last').append("<span class='duration'>"+Math.round(diff)+" of "+self.prevObj.duration+" seconds</span>");
+        }
         var obj = response.result[key];
+        self.prevObj = obj;
         console.log(" succes  ", response);
         $('.name-val').text(obj.name);
         $('.key-val').text(obj.key);
         $('.artist-val').text(obj.artist);
         $('.album-val').text(obj.album);
+        $('.duration-val').text(obj.duration + "s");
         $('.can-stream-val').text(obj.canStream);
         $('.artwork-val').attr('src',obj.icon);
+
+        var line = "<span class='detail'>"+obj.name+"</span> from <span class='detail'>"+obj.album+"</span> by <span class='detail'>"+obj.artist+"</span> [<span class='detail'>"+obj.key+"</span>]";
+        if (!obj.canStream) {
+          line = "<s>"+line+"</s>";
+        }
+        $('.history').append("<div class='played'>"+line+"</div>");
+        $('.source-val').val('t' + Math.round((Math.random() * 100000)) );
+
+        self.lastPlay = new Date();
       },
       error: function(response) {
         console.error(" failure ", response);

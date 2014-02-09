@@ -1,4 +1,41 @@
+.hidden {
+  display: none;
+}
 .details {
   border: 1px solid black;
-  background: grey;
+  background: rgb(175, 216, 208);
+  display: inline-block;
+}
+.api-field {
+  width: 130px;
+  display: inline-block;
+  text-align: right;
+  padding-right: 10px;
+  text-transform: lowercase;
+}
+.api-value {
+  font-weight: bold;
+  line-height: 1.5;
+  .artwork-val {
+    vertical-align: top;
+  }
+}
+.history {
+  border: 1px solid black;
+  display: inline-block;
+  padding: 0px 10px;
+  .played {
+    font-size: 10px;
+    color: rgba(87, 87, 180, 1);
+    .detail {
+      font-size: 13px;
+      font-family: monospace;
+      color: rgb(28, 45, 138);
+      padding: 0px 6px;
+      line-height: .2;
+    }
+    .duration {
+      padding-left: 11px;
+    }
+  }
 }
