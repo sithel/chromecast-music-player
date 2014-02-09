@@ -6,12 +6,59 @@
     <script src="https://www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js"></script>
     <script src="https://rdio.com/api/api.js?client_id=uJQhJrLf20C_re-6XjUvcA"></script>
     <script>
-      R.ready(function(){console.log('ready')});
+      R.accessToken('none');
+      R.on('change:authenticated', function(authed) {
+        if (authed) {
+          R.ready(function() {
+            R.player.on('change:playingTrack', function(track) {
+              if (!track) return;
+              var row = document.createElement('div');
+              row.textContent =
+                track.get('name') + ' - ' + track.get('album') + ' - ' + track.get('artist');
+              document.getElementById('trackLog').appendChild(row);
+            });
+          });
+        }
+      });
     </script>
   </head>
-  <body>
+  <body bgcolor=red>
     <script>
-      document.write('Version: ' + cast.receiver.VERSION);
+      var appConfig = new cast.receiver.CastReceiverManager.Config();
+      appConfig.maxInactivity = 10000;
+      appConfig.statusText = "Adam's status text";
+      var manager = cast.receiver.CastReceiverManager.getInstance();
+      var messageBus = manager.getCastMessageBus('urn:x-cast:duck');
+      messageBus.onMessage = function(evt) {
+        toggleStatusColor();
+
+        var message = JSON.parse(evt.data);
+        if (message.type == 'accessToken') {
+          R.accessToken(message.value);
+        } else if (message.type == 'playerCommand') {
+          R.player[message.name].apply(R.player, message.arguments);
+        }
+      };
+      manager.onSenderConnected = function(evt) {
+        document.body.style.backgroundColor = 'green';
+        if (!R.authenticated()) {
+          var senderId = evt.data;
+          messageBus.send(senderId, 'requestAccessToken');
+        }
+      };
+      manager.start(appConfig);
+      document.write('<center>Version: ' + cast.receiver.VERSION + '</center>');
+
+      function toggleStatusColor() {
+        var status = document.getElementById('status');
+        if (status.style.backgroundColor == 'blue') {
+          status.style.backgroundColor = 'purple';
+        } else {
+          status.style.backgroundColor = 'blue';
+        }
+      }
     </script>
   </body>
+  <div style="float: right; margin: 50px 50px 0 0; height: 100px; width: 100px; background-color: blue" id=status></div>
+  <center id=trackLog></center>
 </html>
