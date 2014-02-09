@@ -11,15 +11,6 @@
   </head>
   <body bgcolor=red>
     <script>
-      function toggleStatusColor() {
-        var status = document.getElementById('status');
-        if (status.style.backgroundColor == 'blue') {
-          status.style.backgroundColor = 'purple';
-        } else {
-          status.style.backgroundColor = 'blue';
-        }
-      }
-
       function playingTrackMessage(track) {
         return JSON.stringify({
           type: 'playingTrack',
@@ -37,8 +28,9 @@
           messageBus.broadcast(playingTrackMessage(track));
           var row = document.createElement('div');
           row.textContent = track.get('name') + ' - ' + track.get('album') + ' - ' + track.get('artist');
-          document.getElementById('trackLog').appendChild(row);
-          document.getElementById('cover').src = track.get('icon');
+          document.querySelector('#trackLog').appendChild(row);
+          document.querySelector('#cover').src = track.get('icon');
+          document.querySelector('#time').textContent = track.get('duration');
         });
       }
 
@@ -49,7 +41,6 @@
       var messageBus = manager.getCastMessageBus('urn:x-cast:duck');
 
       messageBus.onMessage = function(evt) {
-        toggleStatusColor();
         var message = JSON.parse(evt.data);
         if (message.type == 'accessToken') {
           R.accessToken(message.value);
@@ -74,7 +65,7 @@
       manager.start(appConfig);
     </script>
   </body>
-  <div style="float: right; margin: 50px 50px 0 0; height: 100px; width: 100px; background-color: blue" id=status></div>
+  <div style="float: right; margin: 50px 50px 0 0;" id=time></div>
   <img style="float: left; margin: 50px 0 0 50px;" width=200 height=200 id=cover>
   <center style="margin-top: 50px" id=trackLog></center>
 </html>
