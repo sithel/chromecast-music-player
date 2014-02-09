@@ -7,33 +7,47 @@
     <script src="https://rdio.com/api/api.js?client_id=uJQhJrLf20C_re-6XjUvcA"></script>
     <script>
       R.accessToken('none');
-      R.on('change:authenticated', function(authed) {
-        if (authed) {
-          R.ready(function() {
-            R.player.on('change:playingTrack', function(track) {
-              if (!track) return;
-              messageBus.broadcast(JSON.stringify({
-                type: 'playingTrack',
-                key: track.get('key')
-              }));
-              var row = document.createElement('div');
-              row.textContent =
-                track.get('name') + ' - ' + track.get('album') + ' - ' + track.get('artist');
-              document.getElementById('trackLog').appendChild(row);
-              document.getElementById('cover').src = track.get('icon');
-            });
-          });
-        }
-      });
     </script>
   </head>
   <body bgcolor=red>
     <script>
+      function toggleStatusColor() {
+        var status = document.getElementById('status');
+        if (status.style.backgroundColor == 'blue') {
+          status.style.backgroundColor = 'purple';
+        } else {
+          status.style.backgroundColor = 'blue';
+        }
+      }
+
+      function playingTrackMessage(track) {
+        return JSON.stringify({
+          type: 'playingTrack',
+          key: track.get('key'),
+        });
+      }
+
+      function setUpPlayerHandler() {
+        R.player.on('change:playingTrack', function(track) {
+          if (!track) {
+            console.log('Got null track');
+            return;
+          }
+
+          messageBus.broadcast(playingTrackMessage(track));
+          var row = document.createElement('div');
+          row.textContent = track.get('name') + ' - ' + track.get('album') + ' - ' + track.get('artist');
+          document.getElementById('trackLog').appendChild(row);
+          document.getElementById('cover').src = track.get('icon');
+        });
+      }
+
       var appConfig = new cast.receiver.CastReceiverManager.Config();
       appConfig.maxInactivity = 10000;
       appConfig.statusText = "Adam's status text";
       var manager = cast.receiver.CastReceiverManager.getInstance();
       var messageBus = manager.getCastMessageBus('urn:x-cast:duck');
+
       messageBus.onMessage = function(evt) {
         toggleStatusColor();
         var message = JSON.parse(evt.data);
@@ -43,27 +57,24 @@
           R.player[message.name].apply(R.player, message.arguments);
         }
       };
+
       manager.onSenderConnected = function(evt) {
         document.body.style.backgroundColor = 'green';
+        var senderId = evt.data;
         if (!R.authenticated()) {
-          var senderId = evt.data;
           messageBus.send(senderId, JSON.stringify({type: 'requestAccessToken'}));
+
+          R.on('change:authenticated', function(authed) {
+            R.ready(setUpPlayerHandler);
+          });
+        } else if (R.ready() && R.player.playingTrack()) {
+          messageBus.send(senderId, playingTrackMessage(R.player.playingTrack()));
         }
       };
       manager.start(appConfig);
-      document.write('<center>Version: ' + cast.receiver.VERSION + '</center>');
-
-      function toggleStatusColor() {
-        var status = document.getElementById('status');
-        if (status.style.backgroundColor == 'blue') {
-          status.style.backgroundColor = 'purple';
-        } else {
-          status.style.backgroundColor = 'blue';
-        }
-      }
     </script>
   </body>
   <div style="float: right; margin: 50px 50px 0 0; height: 100px; width: 100px; background-color: blue" id=status></div>
   <img style="float: left; margin: 50px 0 0 50px;" width=200 height=200 id=cover>
-  <center id=trackLog></center>
+  <center style="margin-top: 50px" id=trackLog></center>
 </html>
