@@ -12,10 +12,10 @@
   <body bgcolor=red>
     <script>
       function playingTrackMessage(track) {
-        return JSON.stringify({
+        return {
           type: 'playingTrack',
           key: track.get('key'),
-        });
+        };
       }
 
       function setUpPlayerHandler() {
@@ -38,10 +38,10 @@
       appConfig.maxInactivity = 10000;
       appConfig.statusText = "Adam's status text";
       var manager = cast.receiver.CastReceiverManager.getInstance();
-      var messageBus = manager.getCastMessageBus('urn:x-cast:duck');
+      var messageBus = manager.getCastMessageBus('urn:x-cast:duck', cast.receiver.CastMessageBus.MessageType.JSON);
 
-      messageBus.onMessage = function(evt) {
-        var message = JSON.parse(evt.data);
+      messageBus.onMessage = function(event) {
+        var message = event.data;
         if (message.type == 'accessToken') {
           R.accessToken(message.value);
         } else if (message.type == 'playerCommand') {
@@ -53,7 +53,7 @@
         document.body.style.backgroundColor = 'green';
         var senderId = evt.data;
         if (!R.authenticated()) {
-          messageBus.send(senderId, JSON.stringify({type: 'requestAccessToken'}));
+          messageBus.send(senderId, {type: 'requestAccessToken'});
 
           R.on('change:authenticated', function(authed) {
             R.ready(setUpPlayerHandler);
