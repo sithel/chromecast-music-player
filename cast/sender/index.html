@@ -2,6 +2,8 @@
 <html>
   <head>
     <title>Sample Music Player : Sender</title>
+
+    <link rel="stylesheet/less" type="text/css" href="sender.less">
     <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
     <script src="https://rdio.com/api/api.js?client_id=uJQhJrLf20C_re-6XjUvcA"></script>
@@ -13,10 +15,17 @@
     <script src="sender.js"></script>
   </head>
   <body onload="reb.start()">
-    click to authenticate on rdio
-    <button class="auth-button">AUTH ON RDIO</button>
-    <br>
     click the button to 
-    <button class="cast-button">CAST TO CHROMECAST</button>
+    <button class="cast-button">CAST TO CHROMECAST</button><br>
+    <button class="togglePause-button">Play / Pause</button><br>
+    <input type="text" class="source-val"> <button class="playSource-button">Play Source</button>
+    <div class='details'>
+      <span class="api-field">Track name</span>: <span class="api-value name-val"></span><br>
+      <span class="api-field">Key</span>: <span class="api-value key-val"></span><br>
+      <span class="api-field">Artist name</span>: <span class="api-value artist-val"></span><br>
+      <span class="api-field">Album name</span>: <span class="api-value album-val"></span><br>
+      <span class="api-field">Can Stream</span>: <span class="api-value can-stream-val"></span><br>
+      <span class="api-field">Album artwork</span>: <span class="api-value"><img src="" class="artwork-val"></span><br>
+    </div>
   </body>
 </html>

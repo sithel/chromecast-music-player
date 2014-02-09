@@ -20,19 +20,38 @@ R.on('cookieError', function() {
 var reb = {
   chromecastApplicationId: '8A833349',
   start: function() {
-    _.bindAll(this, 'startCasting', 'startRdio', 'handleNewSession', 'sendMessage');
+    var self = this;
+    _.bindAll(this, 'startCasting', 'startRdio', 'handleNewSession', 'sendMessage', 'pullDetails');
     $('.cast-button').click(this.startCasting);
     $('.auth-button').click(this.startRdio);
+    $('.togglePause-button').click(function() {
+      self.sendMessage(JSON.stringify({
+        type: 'playerCommand',
+        name: 'togglePause',
+        arguments: []
+      }))
+    });
+    $('.playSource-button').click(function() {
+      self.sendMessage(JSON.stringify({
+        type: 'playerCommand',
+        name: 'play',
+        arguments: [{source: $('.source-val').val()}]
+      }))
+    });
   },
   handleNewSession: function(s) {
     var self = this;
     s.addMessageListener('urn:x-cast:duck', function(s1, s2) {
       console.info("[Chromecast] just received a message! " , arguments);
-      if (s2 == 'requestAccessToken') {
+      var obj = JSON.parse(s2);
+      if (obj.type == 'requestAccessToken') {
         self.startRdio();
+      }else if (obj.type == 'playingTrack') {
+        self.pullDetails(obj.key)
       }
     });
   },
+  // type: playerCommand, name: methodName, arguments: []
   sendMessage: function(msg) {
     this._session.sendMessage('urn:x-cast:duck', msg, 
       function() {
@@ -88,6 +107,27 @@ var reb = {
         console.error("[Chromecast] on launch error ",arguments);
       }
     );
+  },
+  pullDetails: function(key) {
+    R.request({
+      method: "get",
+      content: {
+        keys: key
+      },
+      success: function(response) {
+        var obj = response.result[key];
+        console.log(" succes  ", response);
+        $('.name-val').text(obj.name);
+        $('.key-val').text(obj.key);
+        $('.artist-val').text(obj.artist);
+        $('.album-val').text(obj.album);
+        $('.can-stream-val').text(obj.canStream);
+        $('.artwork-val').attr('src',obj.icon);
+      },
+      error: function(response) {
+        console.error(" failure ", response);
+      }
+    });
   }
 };
 
