@@ -4,6 +4,7 @@ chromecast-music-player
 Play random tracks from Rdio on your TV via the Chromecast.  Not meant, nor able, to really work for other people.  A random weekend project for our home setup.
 
 sithel wrote the sender application
+
 ajklein wrote the receiver application
 
 
@@ -12,17 +13,16 @@ ajklein wrote the receiver application
 It isn't possible to programatically auth with Rdio on the Chromecast.  To work around this, manually sign in on the Chromecast device so that the cookies are available.
 
 1. Open up the debugger for your Chromecast http://CHROMECAST-IP:9222/  You'll be on the Chromecast home page, but that's totally fine
-2. On the console, go to the Rdio signin page
-```javascript
-window.location = https://www.rdio.com/account/signin/
-```
+2. On the console, go to the Rdio signin page via `window.location = https://www.rdio.com/account/signin/`
 3. In the console, fill out the form information via JQuery
-```javascript
+
+    ```javascript
 $('.type_email').val('YOUR-EMAIL')
 $('.type_password').val('YOUR-PASSWORD')
 $('.type_password').change()
 $('button[name=submit]').click()
 ```
+
 4. Wait a bit for the page to start loading (you don't need to wait for the whole page to load)
 
 # APIs
