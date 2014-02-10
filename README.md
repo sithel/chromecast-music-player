@@ -34,7 +34,8 @@ Everything for this setup is either an .html or .js page so there's no secret in
 It costs $5 to get a Chromecast dev account, but it's totally worth it.  You have to find the serial number of your device and enter it on the site.  There's a window of ~15 minutes that you need to allow for the device to register. (requires no attention/action though) 
 
 You'll be given a application ID to put in the sender app.  [ **8A833349** ]
-You'll need to provide a sender page and a receiver page.
+
+You'll need to provide a sender page and a receiver page.  
 (note that the sender can be a localhost address but the receiver needs to be reachable on the network, presumably by IP address)
 
 ## Rdio
@@ -42,5 +43,6 @@ You'll need to provide a sender page and a receiver page.
 Is free, requires access to beta developer site.
 
 You'll be given a client ID to put in the sender app and the receiver app. [ **uJQhJrLf20C_re-6XjUvcA** ]
+
 You'll need to provide a URL and redirect URLs.  Note that the redirect URLs for both the sender and receiver need to be entered, exactly as you provided to the Chromecast.
 
